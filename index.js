@@ -1,3 +1,4 @@
+console.log("--- VERSÃO DE DEBUG v3 INICIADA ---");
 const express = require("express");
 const mysql = require("mysql2/promise");
 const app = express();
