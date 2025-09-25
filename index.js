@@ -1,16 +1,16 @@
-console.log("--- VERSÃO DE DEBUG v3 INICIADA ---");
+console.log("--- VERSÃO DE DEBUG v5 INICIADA ---");
 const express = require("express");
 const mysql = require("mysql2/promise");
 const app = express();
 const port = 3000;
 
-require('dotenv').config();
+require("dotenv").config();
 
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME
+  database: process.env.DB_NAME,
 });
 
 app.use(express.json());
@@ -19,38 +19,39 @@ app.get("/", (req, res) => {
   res.send("Servidor rodando!");
 });
 
+// ROTA GET /users COM DEBUG NO LUGAR CERTO
 app.get("/users", async (req, res) => {
-  try {
-    const [rows] = await pool.query("SELECT * FROM usuarios");
-    res.json(rows);
-  } catch (error) {
-    res.status(500).send("Erro ao conectar ao banco de dados");
-  }
-});
-
-app.post("/users", async (req, res) => {
-   // --- INÍCIO DO NOVO CÓDIGO DE DEBUG ---
   console.log("=============================================");
-  console.log("NOVA REQUISIÇÃO PARA /usuarios");
+  console.log("REQUISIÇÃO RECEBIDA EM GET /users");
   console.log("Tentando conectar com os seguintes parâmetros:");
   console.log({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
     database: process.env.DB_NAME,
-    password_is_present: !!process.env.DB_PASSWORD 
+    password_is_present: !!process.env.DB_PASSWORD,
   });
-  // --- FIM DO NOVO CÓDIGO DE DEBUG ---
 
   try {
-    const [rows] = await pool.query('SELECT * FROM usuarios');
+    const [rows] = await pool.query("SELECT * FROM usuarios"); // A tabela no SQL ainda se chama usuarios
     res.json(rows);
   } catch (error) {
-    // --- INÍCIO DO NOVO LOG DE ERRO ---
     console.error("!!! ERRO DETALHADO DA CONEXÃO COM O BANCO !!!");
-    console.error(error); 
+    console.error(error);
     console.log("=============================================");
-    // --- FIM DO NOVO LOG DE ERRO ---
-    res.status(500).send('Erro ao conectar ao banco de dados');
+    res.status(500).send("Erro ao conectar ao banco de dados");
+  }
+});
+
+app.post("/users", async (req, res) => {
+  try {
+    const { name, email } = req.body;
+    const sql = "INSERT INTO usuarios (name, email) VALUES (?, ?)";
+    const [result] = await pool.query(sql, [name, email]);
+    const newUser = { id: result.insertId, name, email };
+    res.status(201).json(newUser);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Erro ao criar usuário");
   }
 });
 
@@ -86,7 +87,6 @@ app.put("/users/:id", async (req, res) => {
     } else {
       res.status(404).send("Usuário não encontrado");
     }
-
   } catch (error) {
     console.error(error);
     res.status(500).send("Erro no servidor");
