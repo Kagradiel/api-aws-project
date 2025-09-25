@@ -1,4 +1,3 @@
-console.log("--- VERSÃO DE DEBUG v5 INICIADA ---");
 const express = require("express");
 const mysql = require("mysql2/promise");
 const app = express();
@@ -19,18 +18,8 @@ app.get("/", (req, res) => {
   res.send("Servidor rodando!");
 });
 
-// ROTA GET /users COM DEBUG NO LUGAR CERTO
-app.get("/users", async (req, res) => {
-  console.log("=============================================");
-  console.log("REQUISIÇÃO RECEBIDA EM GET /users");
-  console.log("Tentando conectar com os seguintes parâmetros:");
-  console.log({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    database: process.env.DB_NAME,
-    password_is_present: !!process.env.DB_PASSWORD,
-  });
 
+app.get("/users", async (req, res) => {
   try {
     const [rows] = await pool.query("SELECT * FROM usuarios"); // A tabela no SQL ainda se chama usuarios
     res.json(rows);
