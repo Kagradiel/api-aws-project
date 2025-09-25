@@ -28,18 +28,28 @@ app.get("/users", async (req, res) => {
 });
 
 app.post("/users", async (req, res) => {
+   // --- INÍCIO DO NOVO CÓDIGO DE DEBUG ---
+  console.log("=============================================");
+  console.log("NOVA REQUISIÇÃO PARA /usuarios");
+  console.log("Tentando conectar com os seguintes parâmetros:");
+  console.log({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    database: process.env.DB_NAME,
+    password_is_present: !!process.env.DB_PASSWORD 
+  });
+  // --- FIM DO NOVO CÓDIGO DE DEBUG ---
+
   try {
-    const { name, email } = req.body;
-    const sql = "INSERT INTO usuarios (name, email) VALUES (?, ?)";
-    const [result] = await pool.query(sql, [name, email]);
-    const newUser = {
-      id: result.insertId,
-      name,
-      email,
-    };
-    res.status(201).json(newUser);
+    const [rows] = await pool.query('SELECT * FROM usuarios');
+    res.json(rows);
   } catch (error) {
-    res.status(500).send("Erro ao criar usuario");
+    // --- INÍCIO DO NOVO LOG DE ERRO ---
+    console.error("!!! ERRO DETALHADO DA CONEXÃO COM O BANCO !!!");
+    console.error(error); 
+    console.log("=============================================");
+    // --- FIM DO NOVO LOG DE ERRO ---
+    res.status(500).send('Erro ao conectar ao banco de dados');
   }
 });
 
